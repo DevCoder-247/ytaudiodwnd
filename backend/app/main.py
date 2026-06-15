@@ -39,6 +39,10 @@ app.include_router(router, prefix="/api")
 # Mount downloads directory for file serving
 os.makedirs(settings.DOWNLOADS_DIR, exist_ok=True)
 
+@app.get("/")
+async def home():
+    return {"Message welcome to youtube audio downloader"}
+
 @app.get("/health")
 async def health():
     return {"status": "ok", "version": "1.0.0"}
