@@ -1,0 +1,85 @@
+version: "3.9"
+
+services:
+  # ── Backend API ───────────────────────────────────────────────
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=false
+      - DOWNLOADS_DIR=/app/downloads
+      - TEMP_DIR=/app/temp
+      - CORS_ORIGINS=http://localhost:5173,http://localhost:3000,http://localhost:80,http://localhost
+      - USE_CELERY=false          # Set to true + uncomment redis/worker to use Celery
+      - MAX_DURATION_SECONDS=1800
+      - MAX_FILE_SIZE_MB=200
+      - FILE_TTL_HOURS=2
+      # Uncomment for Celery:
+      # - USE_CELERY=true
+      # - REDIS_URL=redis://redis:6379/0
+      # Optional: path to cookies file for age-restricted videos
+      # - YTDLP_COOKIES_FILE=/app/cookies.txt
+    volumes:
+      - downloads:/app/downloads
+      - temp:/app/temp
+      # Optional: mount cookies file
+      # - ./cookies.txt:/app/cookies.txt:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ── Frontend (production build served by nginx) ───────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+    environment:
+      - VITE_API_URL=/api
+
+  # ── Redis (optional — only needed for Celery) ─────────────────
+  # redis:
+  #   image: redis:7-alpine
+  #   ports:
+  #     - "6379:6379"
+  #   healthcheck:
+  #     test: ["CMD", "redis-cli", "ping"]
+  #     interval: 10s
+
+  # ── Celery worker (optional) ──────────────────────────────────
+  # worker:
+  #   build:
+  #     context: ./backend
+  #     dockerfile: Dockerfile
+  #   command: celery -A app.workers.celery_app worker --loglevel=info --concurrency=4
+  #   environment:
+  #     - USE_CELERY=true
+  #     - REDIS_URL=redis://redis:6379/0
+  #     - DOWNLOADS_DIR=/app/downloads
+  #   volumes:
+  #     - downloads:/app/downloads
+  #   depends_on:
+  #     - redis
+
+  # ── Celery Flower monitor (optional) ──────────────────────────
+  # flower:
+  #   build:
+  #     context: ./backend
+  #     dockerfile: Dockerfile
+  #   command: celery -A app.workers.celery_app flower --port=5555
+  #   ports:
+  #     - "5555:5555"
+  #   depends_on:
+  #     - redis
+
+volumes:
+  downloads:
+  temp:
