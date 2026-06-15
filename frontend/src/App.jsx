@@ -245,7 +245,7 @@ export default function App() {
               setErrorMsg(status.error || "Download failed.");
               setPhase("error");
             }
-          } catch (_) {}
+          } catch (_) { }
         }, 1000);
       } catch (e) {
         setErrorMsg(e.message);
@@ -616,8 +616,8 @@ export default function App() {
                       {job.status === "pending"
                         ? "Queued…"
                         : job.status === "processing"
-                        ? "Downloading & converting…"
-                        : job.status}
+                          ? "Downloading & converting…"
+                          : job.status}
                     </span>
                     <span style={{ color: "#6b7280" }}>{job.progress}%</span>
                   </div>

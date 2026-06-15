@@ -18,7 +18,7 @@ class Settings:
 
     # CORS
     CORS_ORIGINS: List[str] = os.getenv(
-        "CORS_ORIGINS", "http://localhost:3000,http://localhost:5173"
+        "CORS_ORIGINS", "http://localhost:3000,http://localhost:5173, https://ytaudiodwnd.vercel.app/"
     ).split(",")
 
     # Redis / Celery (optional — falls back to sync if Redis unavailable)
